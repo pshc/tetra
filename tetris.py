@@ -12,6 +12,7 @@ class Board:
     "Represents the state of the Tetris board."
 
     def __init__(self, x=10, y=10):
+        self.stats = Stats()
         self.size = Coord(x, y)
         # The board is represented as an array of arrays, with y rows and x columns.
         self.tiles = [[0] * x for _ in range(0, y)]
@@ -38,7 +39,8 @@ class Board:
         print(board_border)
         for y in range(0, height):
             line = "".join(tile_char(Coord(x, y)) for x in range(0, width))
-            print(f"|{line}|")
+            print(f"|{line}|", end='')
+            self.stats.draw(y)
         print(board_border)
 
     def __getitem__(self, coord):
@@ -124,6 +126,26 @@ class Board:
         else:
             self.center = Coord(self.center.x, self.center.y + 1)
 
+    def clear_lines(self):
+        "Find and remove any fully occupied rows."
+        for y in range(0, self.size.y):
+            if all(self.tiles[y]):
+                # move all the rows above this down
+                self.tiles.pop(y)
+                self.tiles.insert(0, [0] * self.size.x)
+                self.stats.lines += 1
+
+class Stats:
+    "Statistics for a single game."
+    lines = 0
+
+    def draw(self, y):
+        "Draw the stats display to the right of the board, at line `y`."
+        if y == 0:
+            print(f"  Lines: {self.lines}")
+        else:
+            print()
+
 def pixels(kind, center):
     "Return all the individual pixel positions for the given piece."
     # note: the center is always filled. the rest of the pixels come from our lookup table
@@ -150,6 +172,8 @@ def main():
         # if nothing's falling, wait a bit then spawn a piece
         if board.kind is None:
             lib.get_input(lib.now() + delay)
+            if board.clear_lines():
+                lib.get_input(lib.now() + delay)
             board.spawn()
             continue
 
