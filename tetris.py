@@ -103,12 +103,34 @@ class Board:
     def rotate(self):
         "Rotate the piece (counter-clockwise)."
         rotated = assets.rotations.get(self.kind)
-        if rotated is not None:
-            # detect collision/out of bounds
-            attempt = pixels(rotated, self.center)
-            if self.pixels_free(attempt):
-                self.kind = rotated
-                self.draw()
+        if rotated is None:
+            return
+        # `dest` will be set to a position where this piece fits
+        dest = None
+        if self.pixels_free(pixels(rotated, self.center)):
+            dest = self.center
+        else:
+            # attempt to wall kick by checking left and right
+            left = add_coords(self.center, (1, 0))
+            right = add_coords(self.center, (-1, 0))
+            if self.pixels_free(pixels(rotated, left)):
+                dest = left
+            elif self.pixels_free(pixels(rotated, right)):
+                dest = right
+
+        # extra wide wall kick for the oooo piece
+        if rotated == '-' and dest is None:
+            left = add_coords(self.center, (2, 0))
+            right = add_coords(self.center, (-2, 0))
+            if self.pixels_free(pixels(rotated, left)):
+                dest = left
+            elif self.pixels_free(pixels(rotated, right)):
+                dest = right
+
+        if dest is not None:
+            self.kind = rotated
+            self.center = dest
+            self.draw()
 
     def shift(self, offset):
         "Move the piece horizontally."
@@ -176,7 +198,7 @@ def add_coords(a, b):
     "Add the components of two coords together."
     xa, ya = a
     xb, yb = b
-    return xa + xb, ya + yb
+    return Coord(xa + xb, ya + yb)
 
 def main():
     board = Board()
