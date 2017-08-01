@@ -60,14 +60,38 @@ class Board:
         self.center = Coord(self.size.x//2, 1)
         # pick a random piece out of the seven
         tetromino = random.choice(assets.tetrominoes)
-        # and orient it randomly...? todo
+        if isinstance(tetromino, tuple):
+            # orient it randomly
+            tetromino = random.choice(tetromino)
         self.kind = tetromino
 
     def piece_pixels(self):
         "Returns the coords of each pixel of the current falling piece, or None."
         if self.center is None:
             return None
-        return [add_coords(self.center, off) for off in assets.offsets[self.kind]]
+        return pixels(self.kind, self.center)
+
+    def pixels_free(self, pixels):
+        "Returns True if all the given pixels are valid open positions in the board."
+        for pixel in pixels:
+            x, y = pixel
+            if x < 0 or x >= self.size.x:
+                return False
+            if y < 0 or y >= self.size.y:
+                return False
+            if self[pixel]:
+                return False
+        return True
+
+    def rotate(self):
+        "Rotate the piece (counter-clockwise)."
+        rotated = assets.rotations.get(self.kind)
+        if rotated is not None:
+            # detect collision/out of bounds
+            attempt = pixels(rotated, self.center)
+            if self.pixels_free(attempt):
+                self.kind = rotated
+                self.draw()
 
     def shift(self, offset):
         "Move the piece horizontally."
@@ -100,6 +124,10 @@ class Board:
         else:
             self.center = Coord(self.center.x, self.center.y + 1)
 
+def pixels(kind, center):
+    "Return all the individual pixel positions for the given piece."
+    # note: the center is always filled. the rest of the pixels come from our lookup table
+    return [center] + [add_coords(center, xy) for xy in assets.offsets[kind]]
 
 def add_coords(a, b):
     "Add the components of two coords together."
@@ -134,6 +162,8 @@ def main():
                 board.shift(-1)
             elif key == 'right':
                 board.shift(1)
+            elif key == 'up':
+                board.rotate()
             else:
                 break
 
