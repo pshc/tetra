@@ -90,7 +90,7 @@ class Board:
         # give a little wiggle room when the board is full
         for y in (top, top - 1):
             for x in (mid, mid + 1, mid - 1):
-                if self.pixels_free(pixels(tetromino, (x, y))):
+                if self.pixels_free(tetromino, (x, y)):
                     self.center = Coord(x, y)
                     return
         # oh no
@@ -111,15 +111,15 @@ class Board:
         # move it down, checking each potential position
         while ghost_center.y < self.size.y:
             down = add_coords(ghost_center, (0, 1))
-            if self.pixels_free(pixels(self.kind, down)):
+            if self.pixels_free(self.kind, down):
                 ghost_center = down
             else:
                 return pixels(self.kind, ghost_center)
         return None
 
-    def pixels_free(self, pixels):
+    def pixels_free(self, kind, center):
         "Returns True if all the given pixels are valid open positions in the board."
-        for pixel in pixels:
+        for pixel in pixels(kind, center):
             x, y = pixel
             if x < 0 or x >= self.size.x:
                 return False
@@ -136,24 +136,24 @@ class Board:
             return
         # `dest` will be set to a position where this piece fits
         dest = None
-        if self.pixels_free(pixels(rotated, self.center)):
+        if self.pixels_free(rotated, self.center):
             dest = self.center
         else:
             # attempt to wall kick by checking left and right
             left = add_coords(self.center, (1, 0))
             right = add_coords(self.center, (-1, 0))
-            if self.pixels_free(pixels(rotated, left)):
+            if self.pixels_free(rotated, left):
                 dest = left
-            elif self.pixels_free(pixels(rotated, right)):
+            elif self.pixels_free(rotated, right):
                 dest = right
 
         # extra wide wall kick for the oooo piece
         if rotated == '-' and dest is None:
             left = add_coords(self.center, (2, 0))
             right = add_coords(self.center, (-2, 0))
-            if self.pixels_free(pixels(rotated, left)):
+            if self.pixels_free(rotated, left):
                 dest = left
-            elif self.pixels_free(pixels(rotated, right)):
+            elif self.pixels_free(rotated, right):
                 dest = right
 
         if dest is not None:
