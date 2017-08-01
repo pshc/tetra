@@ -26,8 +26,6 @@ class Board:
         self.center = self.kind = None
         self.spawn()
 
-    # TILES
-
     def draw(self):
         "Draws the contents of the board with a border around it."
         width, height = self.size
@@ -47,6 +45,17 @@ class Board:
             print(f"|{line}|", end='')
             self.stats.draw(y - self.vanish_zone)
         print(board_border)
+
+    # TILES
+
+    def clear_lines(self):
+        "Find and remove any fully occupied rows."
+        for y in range(0, self.size.y):
+            if all(self.tiles[y]):
+                # move all the rows above this down
+                self.tiles.pop(y)
+                self.tiles.insert(0, [0] * self.size.x)
+                self.stats.lines += 1
 
     def __getitem__(self, coord):
         "Returns the (stuck) tile at given (x, y)."
@@ -168,15 +177,6 @@ class Board:
         while self.kind is not None:
             self.descend()
         self.draw()
-
-    def clear_lines(self):
-        "Find and remove any fully occupied rows."
-        for y in range(0, self.size.y):
-            if all(self.tiles[y]):
-                # move all the rows above this down
-                self.tiles.pop(y)
-                self.tiles.insert(0, [0] * self.size.x)
-                self.stats.lines += 1
 
 class Stats:
     "Statistics for a single game."
