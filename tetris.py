@@ -12,6 +12,7 @@ class Board:
     "Represents the state of the Tetris board."
 
     def __init__(self, x=10, y=10):
+        self.alive = True
         self.stats = Stats()
         self.size = Coord(x, y)
         # The board is represented as an array of arrays, with y rows and x columns.
@@ -58,14 +59,25 @@ class Board:
     def spawn(self):
         "Spawn a new piece."
         assert self.center is None
-        # `self.center` is the center of rotation 
-        self.center = Coord(self.size.x//2, 1)
+
         # pick a random piece out of the seven
         tetromino = random.choice(assets.tetrominoes)
         if isinstance(tetromino, tuple):
             # orient it randomly
             tetromino = random.choice(tetromino)
         self.kind = tetromino
+
+        # try to find a free space to spawn this piece
+        # first, find the top edge
+        y = max(-y for x, y in assets.offsets[tetromino])
+        mid = self.size.x//2
+        for x in (mid, mid + 1, mid - 1): # wiggle room
+            if self.pixels_free(pixels(tetromino, (x, y))):
+                self.center = Coord(x, y)
+                return
+        # oh no
+        self.alive = False
+        self.center = (mid, 0)
 
     def piece_pixels(self):
         "Returns the coords of each pixel of the current falling piece, or None."
@@ -166,7 +178,7 @@ def main():
 
     # game loop
     delay = 2
-    while True:
+    while board.alive:
         board.draw()
 
         # if nothing's falling, wait a bit then spawn a piece
@@ -194,6 +206,9 @@ def main():
         # down-step
         board.descend()
 
+    board.draw()
+    print()
+    print('GAME OVER!')
 
 if __name__ == '__main__':
     main()
