@@ -38,6 +38,8 @@ def get_input(deadline):
                 return arrow
         elif input == ctrl_c:
             sys.exit()
+        elif input == ' ':
+            return 'space'
 
     return None
 

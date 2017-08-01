@@ -11,7 +11,7 @@ Coord = collections.namedtuple('Coord', ['x', 'y'])
 class Board:
     "Represents the state of the Tetris board."
 
-    size = Coord(10, 12)
+    size = Coord(10, 16)
     # hide two lines at the top for some extra wiggle room
     vanish_zone = 2
 
@@ -141,6 +141,12 @@ class Board:
         else:
             self.center = Coord(self.center.x, self.center.y + 1)
 
+    def hard_drop(self):
+        "Moves the piece all the way down."
+        while self.kind is not None:
+            self.descend()
+        self.draw()
+
     def clear_lines(self):
         "Find and remove any fully occupied rows."
         for y in range(0, self.size.y):
@@ -203,11 +209,15 @@ def main():
                 board.shift(1)
             elif key == 'up':
                 board.rotate()
+            elif key == 'space':
+                board.hard_drop()
+                break
             else:
                 break
 
         # down-step
-        board.descend()
+        if board.kind is not None:
+            board.descend()
 
     board.draw()
     print()
