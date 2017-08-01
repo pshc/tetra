@@ -11,7 +11,7 @@ Coord = collections.namedtuple('Coord', ['x', 'y'])
 class Board:
     "Represents the state of the Tetris board."
 
-    size = Coord(10, 16)
+    size = Coord(10, 24)
     # hide two lines at the top for some extra wiggle room
     vanish_zone = 2
 
@@ -53,12 +53,15 @@ class Board:
 
     def clear_lines(self):
         "Find and remove any fully occupied rows."
+        lines = 0
         for y in range(0, self.size.y):
             if all(self.tiles[y]):
                 # move all the rows above this down
                 self.tiles.pop(y)
                 self.tiles.insert(0, [0] * self.size.x)
-                self.stats.lines += 1
+                lines += 1
+        if lines > 0:
+            self.stats.score_lines(lines)
 
     def __getitem__(self, coord):
         "Returns the (stuck) tile at given (x, y)."
@@ -198,13 +201,25 @@ class Board:
 class Stats:
     "Statistics for a single game."
     lines = 0
+    level = 1
 
     def draw(self, y):
         "Draw the stats display to the right of the board, at line `y`."
         if y == 0:
+            print(f"  Level: {self.level}")
+        elif y == 1:
             print(f"  Lines: {self.lines}")
         else:
             print()
+
+    @property
+    def delay(self):
+        "Step time per level, stolen from https://gist.github.com/dwhacks/8644250"
+        return 0.725 * pow(0.85, self.level) + (self.level / 1000)
+
+    def score_lines(self, lines):
+        self.lines += lines
+        self.level += 1
 
 def pixels(kind, center):
     "Return all the individual pixel positions for the given piece."
@@ -225,9 +240,9 @@ def main():
     atexit.register(lib.restore_terminal, original_terminal_state)
 
     # game loop
-    delay = 2
     while board.alive:
         board.draw()
+        delay = board.stats.delay
 
         # if nothing's falling, wait a bit then spawn a piece
         if board.kind is None:
