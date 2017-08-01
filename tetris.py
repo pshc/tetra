@@ -31,10 +31,13 @@ class Board:
         width, height = self.size
 
         pixels = self.piece_pixels()
+        ghost = self.ghost_pixels()
 
         def tile_char(coord):
             if pixels and coord in pixels:
                 return "█"
+            if ghost and coord in ghost:
+                return "."
             return "░" if self[coord] else " "
 
         lib.clear_screen()
@@ -96,6 +99,20 @@ class Board:
         if self.center is None:
             return None
         return pixels(self.kind, self.center)
+
+    def ghost_pixels(self):
+        "Returns the pixels where the current falling piece would be dropped."
+        ghost_center = self.center
+        if ghost_center is None:
+            return None
+        # move it down, checking each potential position
+        while ghost_center.y < self.size.y:
+            down = add_coords(ghost_center, (0, 1))
+            if self.pixels_free(pixels(self.kind, down)):
+                ghost_center = down
+            else:
+                return pixels(self.kind, ghost_center)
+        return None
 
     def pixels_free(self, pixels):
         "Returns True if all the given pixels are valid open positions in the board."
