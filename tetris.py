@@ -11,11 +11,15 @@ Coord = collections.namedtuple('Coord', ['x', 'y'])
 class Board:
     "Represents the state of the Tetris board."
 
-    def __init__(self, x=10, y=10):
+    size = Coord(10, 12)
+    # hide two lines at the top for some extra wiggle room
+    vanish_zone = 2
+
+    def __init__(self):
         self.alive = True
         self.stats = Stats()
-        self.size = Coord(x, y)
         # The board is represented as an array of arrays, with y rows and x columns.
+        x, y = self.size
         self.tiles = [[0] * x for _ in range(0, y)]
         # The current falling piece is not stored in the tile array.
         # Instead we store its `center` of rotation and its `kind`.
@@ -38,10 +42,10 @@ class Board:
         lib.clear_screen()
         board_border = f'+{"-" * width}+'
         print(board_border)
-        for y in range(0, height):
+        for y in range(self.vanish_zone, height):
             line = "".join(tile_char(Coord(x, y)) for x in range(0, width))
             print(f"|{line}|", end='')
-            self.stats.draw(y)
+            self.stats.draw(y - self.vanish_zone)
         print(board_border)
 
     def __getitem__(self, coord):
@@ -66,15 +70,17 @@ class Board:
 
         # try to find a free space to spawn this piece
         # first, find the top edge
-        y = max(-y for x, y in assets.offsets[tetromino])
+        top = self.vanish_zone + max(-y for x, y in assets.offsets[tetromino])
         mid = self.size.x//2
-        for x in (mid, mid + 1, mid - 1): # wiggle room
-            if self.pixels_free(pixels(tetromino, (x, y))):
-                self.center = Coord(x, y)
-                return
+        # give a little wiggle room when the board is full
+        for y in (top, top - 1):
+            for x in (mid, mid + 1, mid - 1):
+                if self.pixels_free(pixels(tetromino, (x, y))):
+                    self.center = Coord(x, y)
+                    return
         # oh no
         self.alive = False
-        self.center = (mid, 0)
+        self.center = (mid, top)
 
     def piece_pixels(self):
         "Returns the coords of each pixel of the current falling piece, or None."
