@@ -1,14 +1,12 @@
-# all of the different kinds of tetronimoes and their orientations
+# the tetronimo spawn positions ("flat side down")
 tetrominoes = [
     'O',
-    ('-', '|'),
-    # `v`ertical
-    ('S', 'Sv'),
-    ('Z', 'Zv'),
-    # four-way rotations use NWES notation
-    ('Le', 'Ln', 'Lw', 'Ls'),
-    ('Jw', 'Js', 'Je', 'Jn'),
-    ('Ts', 'Te', 'Tn', 'Tw'),
+    '-',
+    'S',
+    'Z',
+    'Lw',
+    'Je',
+    'Tn',
 ]
 
 # pixel offsets from the center of rotation

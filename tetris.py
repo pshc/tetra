@@ -62,9 +62,6 @@ class Board:
 
         # pick a random piece out of the seven
         tetromino = random.choice(assets.tetrominoes)
-        if isinstance(tetromino, tuple):
-            # orient it randomly
-            tetromino = random.choice(tetromino)
         self.kind = tetromino
 
         # try to find a free space to spawn this piece
