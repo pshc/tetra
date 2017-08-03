@@ -95,7 +95,7 @@ class Board:
                     return
         # oh no
         self.alive = False
-        self.center = (mid, top)
+        self.center = Coord(mid, top)
 
     def piece_pixels(self):
         "Returns the coords of each pixel of the current falling piece, or None."
